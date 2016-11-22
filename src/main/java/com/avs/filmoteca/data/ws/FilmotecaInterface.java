@@ -7,6 +7,6 @@ import rx.Observable;
 public interface FilmotecaInterface {
 	
 	@GET("/es/webs-municipales/filmoteca/agenda/folder_listing")
-	Observable<String> moviesListHtml();
+	Observable<String> getMoviesListHtmlObservable();
 	
 }
