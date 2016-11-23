@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.avs.filmoteca.data.domain.push.PushMessage;
 import com.avs.filmoteca.data.repository.DataRepository;
 
+import okhttp3.ResponseBody;
 import rx.Observable;
 import rx.Observer;
 
@@ -32,10 +34,15 @@ public class App implements Observer<List<String>> {
 								.map(movie -> movie.getTitle()).collect(Collectors.toList())),
 				this::substractNewMovies).subscribe(this);
 		
-		DataRepository.getInstance().getRegistrationIdsObservable().subscribe(registrationIds -> registrationIds.forEach(System.out::println));
-
-		while (true) {
-		}
+		DataRepository.getInstance().getRegistrationIdsObservable()
+				.flatMap(registrationIds -> DataRepository.getInstance().getPushDeliveryObservable(new PushMessage.Builder()
+						.setRegistrationIds(registrationIds)
+						.setTitleResId("notification_title")
+						.setMessageResId("notification_message")
+						.setIconResId("ic_movie")
+						.build()))
+				.toBlocking()
+				.subscribe();
 	}
 
 	public List<String> substractNewMovies(List<String> oldMovies, List<String> newMovies) {

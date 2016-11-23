@@ -3,28 +3,24 @@ package com.avs.filmoteca.data.ws;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ApiClient {
 
 	public static FilmotecaInterface getFilmotecaInterface() {
-		Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl(Environment.FILMOTECA_URL)
-				.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-				.addConverterFactory(ScalarsConverterFactory.create())
-				.build();
-
-		return retrofit.create(FilmotecaInterface.class);
+		return getRetrofit(Environment.FILMOTECA_URL).create(FilmotecaInterface.class);
 	}
-	
-	public static BackendInterface getBackendInterface() {
-		Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl(Environment.BACKEND_URL)
-				.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-				.addConverterFactory(GsonConverterFactory.create())
-				.build();
 
-		return retrofit.create(BackendInterface.class);
+	public static BackendInterface getBackendInterface() {
+		return getRetrofit(Environment.BACKEND_URL).create(BackendInterface.class);
+	}
+
+	public static FCMInterface getFCMInterface() {
+		return getRetrofit(Environment.FIREBASE_URL).create(FCMInterface.class);
+	}
+
+	private static Retrofit getRetrofit(String url) {
+		return new Retrofit.Builder().baseUrl(url).addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+				.addConverterFactory(GsonConverterFactory.create()).build();
 	}
 
 }
