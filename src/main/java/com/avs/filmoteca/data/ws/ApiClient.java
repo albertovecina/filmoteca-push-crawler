@@ -3,6 +3,7 @@ package com.avs.filmoteca.data.ws;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ApiClient {
 
@@ -20,6 +21,7 @@ public class ApiClient {
 
 	private static Retrofit getRetrofit(String url) {
 		return new Retrofit.Builder().baseUrl(url).addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+				.addConverterFactory(ScalarsConverterFactory.create())
 				.addConverterFactory(GsonConverterFactory.create()).build();
 	}
 

@@ -47,7 +47,6 @@ public class DataRepository {
 	}
 
 	public Observable<ResponseBody> getPushDeliveryObservable(PushMessage message) {
-		System.out.println(new Gson().toJson(message));
 		return ApiClient.getFCMInterface()
 				.getPushDeliveryObservable("key=" + System.getenv("FIREBASE_API_KEY"), message)
 				.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.trampoline());
