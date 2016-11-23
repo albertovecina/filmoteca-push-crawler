@@ -65,7 +65,7 @@ public class App implements Observer<List<String>> {
 		// TODO Auto-generated method stub
 		addedMovies.forEach(System.out::println);
 		if (!addedMovies.isEmpty()) {
-			DataRepository.getInstance().getUpdateMoviesObservable(mCurrentMovies).subscribe();
+			DataRepository.getInstance().getUpdateMoviesObservable(mCurrentMovies).toBlocking().subscribe();
 			DataRepository.getInstance().getRegistrationIdsObservable()
 					.flatMap(registrationIds -> DataRepository.getInstance()
 							.getPushDeliveryObservable(new PushMessage.Builder().setRegistrationIds(registrationIds)
