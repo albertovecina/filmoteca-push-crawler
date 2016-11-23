@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import com.avs.filmoteca.data.domain.push.PushMessage;
 import com.avs.filmoteca.data.repository.DataRepository;
 
-import okhttp3.ResponseBody;
 import rx.Observable;
 import rx.Observer;
 
@@ -26,23 +25,17 @@ public class App implements Observer<List<String>> {
 	}
 
 	public void init() {
+
 		System.out.println("Init");
 
-		Observable.zip(DataRepository.getInstance().getStoredMoviesObservable(),
-				DataRepository.getInstance()
-						.getPublishedMoviesObservable().map(movies -> mCurrentMovies = movies.stream()
-								.map(movie -> movie.getTitle()).collect(Collectors.toList())),
-				this::substractNewMovies).subscribe(this);
-		
-		DataRepository.getInstance().getRegistrationIdsObservable()
-				.flatMap(registrationIds -> DataRepository.getInstance().getPushDeliveryObservable(new PushMessage.Builder()
-						.setRegistrationIds(registrationIds)
-						.setTitleResId("notification_title")
-						.setMessageResId("notification_message")
-						.setIconResId("ic_movie")
-						.build()))
-				.toBlocking()
-				.subscribe();
+		Observable
+				.zip(DataRepository.getInstance().getStoredMoviesObservable(),
+						DataRepository.getInstance().getPublishedMoviesObservable()
+								.map(movies -> mCurrentMovies = movies.stream().map(movie -> movie.getTitle())
+										.collect(Collectors.toList())),
+						this::substractNewMovies)
+				.toBlocking().subscribe(this);
+
 	}
 
 	public List<String> substractNewMovies(List<String> oldMovies, List<String> newMovies) {
@@ -57,20 +50,28 @@ public class App implements Observer<List<String>> {
 	@Override
 	public void onCompleted() {
 		// TODO Auto-generated method stub
-
+		System.out.println("Completed");
 	}
 
 	@Override
 	public void onError(Throwable e) {
 		// TODO Auto-generated method stub
-
+		e.printStackTrace();
+		;
 	}
 
 	@Override
 	public void onNext(List<String> addedMovies) {
 		// TODO Auto-generated method stub
 		addedMovies.forEach(System.out::println);
-		if (!addedMovies.isEmpty())
+		if (!addedMovies.isEmpty()) {
 			DataRepository.getInstance().getUpdateMoviesObservable(mCurrentMovies).subscribe();
+			DataRepository.getInstance().getRegistrationIdsObservable()
+					.flatMap(registrationIds -> DataRepository.getInstance()
+							.getPushDeliveryObservable(new PushMessage.Builder().setRegistrationIds(registrationIds)
+									.setTitleResId("notification_title").setMessageResId("notification_message")
+									.setIconResId("ic_movie").build()))
+					.toBlocking().subscribe();
+		}
 	}
 }
