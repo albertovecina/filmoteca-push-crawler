@@ -70,7 +70,7 @@ public class App implements Observer<List<String>> {
 					.flatMap(registrationIds -> DataRepository.getInstance()
 							.getPushDeliveryObservable(new PushMessage.Builder().setRegistrationIds(registrationIds)
 									.setTitleResId("notification_title").setMessageResId("notification_message")
-									.setIconResId("ic_movie").build()))
+									.setIconResId("ic_notification").build()))
 					.toBlocking().subscribe();
 		}
 	}
