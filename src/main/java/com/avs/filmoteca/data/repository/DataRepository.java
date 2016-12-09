@@ -57,8 +57,8 @@ public class DataRepository {
 				.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.trampoline());
 	}
 
-	public void setUpdating(boolean updating) {
-		sPreferences.putBoolean(UpdateStatus.PREFERENCE_IS_UPDATING, updating);
+	public void setUpdateStatus(int status) {
+		sPreferences.putInt(UpdateStatus.PREFERENCE_UPDATE_STATUS, status);
 		try {
 			sPreferences.sync();
 		} catch (BackingStoreException e) {
@@ -67,8 +67,8 @@ public class DataRepository {
 		}
 	}
 
-	public boolean isUpdating() {
-		return sPreferences.getBoolean(UpdateStatus.PREFERENCE_IS_UPDATING, false);
+	public int getLastUpdateStatus() {
+		return sPreferences.getInt(UpdateStatus.PREFERENCE_UPDATE_STATUS, UpdateStatus.NOT_UPDATING);
 	}
 
 }

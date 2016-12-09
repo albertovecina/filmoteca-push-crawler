@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.avs.filmoteca.data.domain.UpdateStatus;
 import com.avs.filmoteca.data.domain.push.PushMessage;
 import com.avs.filmoteca.data.repository.DataRepository;
 
@@ -16,6 +17,7 @@ import rx.Observer;
  */
 public class App implements Observer<List<String>> {
 
+	private DataRepository mRepository = DataRepository.getInstance();
 	private List<String> mCurrentMovies;
 
 	public static void main(String[] args) {
@@ -29,8 +31,8 @@ public class App implements Observer<List<String>> {
 		System.out.println("Init");
 
 		Observable
-				.zip(DataRepository.getInstance().getStoredMoviesObservable(),
-						DataRepository.getInstance().getPublishedMoviesObservable()
+				.zip(mRepository.getStoredMoviesObservable(),
+						mRepository.getPublishedMoviesObservable()
 								.map(movies -> mCurrentMovies = movies.stream().map(movie -> movie.getTitle())
 										.collect(Collectors.toList())),
 						this::substractNewMovies)
@@ -57,21 +59,49 @@ public class App implements Observer<List<String>> {
 	public void onError(Throwable e) {
 		// TODO Auto-generated method stub
 		e.printStackTrace();
-		;
 	}
 
 	@Override
 	public void onNext(List<String> addedMovies) {
 		// TODO Auto-generated method stub
 		addedMovies.forEach(System.out::println);
-		if (!addedMovies.isEmpty()) {
-			DataRepository.getInstance().getUpdateMoviesObservable(mCurrentMovies).toBlocking().subscribe();
-			DataRepository.getInstance().getRegistrationIdsObservable()
-					.flatMap(registrationIds -> DataRepository.getInstance()
-							.getPushDeliveryObservable(new PushMessage.Builder().setRegistrationIds(registrationIds)
-									.setTitleResId("notification_title").setMessageResId("notification_message")
-									.setIconResId("ic_notification").build()))
-					.toBlocking().subscribe();
+		boolean isUpdating = !addedMovies.isEmpty();
+		if (isUpdating)
+			updateMovies(mCurrentMovies);
+		if (needToSendPush(isUpdating))
+			sendPushNotification();
+	}
+
+	private void sendPushNotification() {
+		mRepository.getRegistrationIdsObservable()
+				.flatMap(registrationIds -> mRepository.getPushDeliveryObservable(new PushMessage.Builder()
+						.setRegistrationIds(registrationIds).setTitleResId("notification_title")
+						.setMessageResId("notification_message").setIconResId("ic_notification").build()))
+				.toBlocking().subscribe();
+	}
+
+	private void updateMovies(List<String> movies) {
+		mRepository.getUpdateMoviesObservable(movies).toBlocking().subscribe();
+	}
+
+	public boolean needToSendPush(boolean isUpdating) {
+		boolean needToSendPush = false;
+		if (isUpdating) {
+			mRepository.setUpdateStatus(UpdateStatus.UPDATING);
+		} else {
+			switch (mRepository.getLastUpdateStatus()) {
+			case UpdateStatus.UPDATING:
+				mRepository.setUpdateStatus(UpdateStatus.UPDATE_IDLE_1);
+				break;
+			case UpdateStatus.UPDATE_IDLE_1:
+				mRepository.setUpdateStatus(UpdateStatus.UPDATE_IDLE_2);
+				break;
+			case UpdateStatus.UPDATE_IDLE_2:
+				mRepository.setUpdateStatus(UpdateStatus.NOT_UPDATING);
+				needToSendPush = true;
+			}
 		}
+
+		return needToSendPush;
 	}
 }
