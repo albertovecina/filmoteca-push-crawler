@@ -59,21 +59,29 @@ public class App implements Observer<List<String>> {
 	public void onError(Throwable e) {
 		// TODO Auto-generated method stub
 		e.printStackTrace();
-		;
 	}
 
 	@Override
 	public void onNext(List<String> addedMovies) {
 		// TODO Auto-generated method stub
 		addedMovies.forEach(System.out::println);
-		if (!addedMovies.isEmpty()) {
-			mRepository.getUpdateMoviesObservable(mCurrentMovies).toBlocking().subscribe();
-			mRepository.getRegistrationIdsObservable()
-					.flatMap(registrationIds -> mRepository.getPushDeliveryObservable(new PushMessage.Builder()
-							.setRegistrationIds(registrationIds).setTitleResId("notification_title")
-							.setMessageResId("notification_message").setIconResId("ic_notification").build()))
-					.toBlocking().subscribe();
-		}
+		boolean isUpdating = !addedMovies.isEmpty();
+		if (isUpdating)
+			updateMovies(mCurrentMovies);
+		if (needToSendPush(isUpdating))
+			sendPushNotification();
+	}
+
+	private void sendPushNotification() {
+		mRepository.getRegistrationIdsObservable()
+				.flatMap(registrationIds -> mRepository.getPushDeliveryObservable(new PushMessage.Builder()
+						.setRegistrationIds(registrationIds).setTitleResId("notification_title")
+						.setMessageResId("notification_message").setIconResId("ic_notification").build()))
+				.toBlocking().subscribe();
+	}
+
+	private void updateMovies(List<String> movies) {
+		mRepository.getUpdateMoviesObservable(movies).toBlocking().subscribe();
 	}
 
 	public boolean needToSendPush(boolean isUpdating) {
