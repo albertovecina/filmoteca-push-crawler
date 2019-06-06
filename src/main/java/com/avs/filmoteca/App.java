@@ -75,8 +75,8 @@ public class App implements Observer<List<String>> {
 	private void sendPushNotification() {
 		mRepository.getRegistrationIdsObservable()
 				.flatMap(registrationIds -> mRepository.getPushDeliveryObservable(new PushMessage.Builder()
-						.setRegistrationIds(registrationIds).setTitleResId("notification_title")
-						.setMessageResId("notification_message").setIconResId("ic_notification").build()))
+						.setRegistrationIds(registrationIds).setTitleResId("notification_title_normal")
+						.setMessageResId("notification_message_new_movies").setIconResId("ic_notification").build()))
 				.toBlocking().subscribe();
 	}
 

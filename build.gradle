@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'com.avs'
+version = '0.0.1-SNAPSHOT'
+description = 'filmoteca-push-crawler'
+sourceCompatibility = '1.8'
+
+sourceCompatibility = 1.8
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'io.reactivex:rxjava:1.2.2'
+    compile 'org.jsoup:jsoup:1.10.1'
+    testCompile 'junit:junit:3.8.1'
+}
