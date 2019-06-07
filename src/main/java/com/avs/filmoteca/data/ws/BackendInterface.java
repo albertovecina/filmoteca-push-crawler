@@ -9,13 +9,13 @@ import rx.Observable;
 
 public interface BackendInterface {
 	
-	@POST("/filmoteca-ws/movies")
+	@POST("movies")
 	Observable<Void> getUpdateMoviesObservable(@Body List<String> movies);
 
-	@GET("/filmoteca-ws/movies")
+	@GET("movies")
 	Observable<List<String>> getStoredMoviesObservable();
 	
-	@GET("/filmoteca-ws/registrationId")
+	@GET("registrationId")
 	Observable<List<String>> getRegistrationIdsObservable();
 
 }
