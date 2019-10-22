@@ -58,11 +58,16 @@ class App : Observer<List<String>> {
     }
 
     private fun sendPushNotification() {
-        repository.getRegistrationIdsObservable()
+        /*repository.getRegistrationIdsObservable()
                 .flatMap { registrationIds ->
                     repository.getPushDeliveryObservable(PushMessage.Builder()
                             .setRegistrationIds(registrationIds).setTitleResId("notification_title_normal")
                             .setMessageResId("notification_message_new_movies").setIconResId("ic_notification").build())
+                }
+                .toBlocking().subscribe()*/
+        repository.getRegistrationIdsObservable()
+                .map { registrationIds ->
+                    repository.sendPush(registrationIds)
                 }
                 .toBlocking().subscribe()
     }

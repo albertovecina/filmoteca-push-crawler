@@ -59,6 +59,17 @@ class DataRepository private constructor() {
                 .subscribeOn(Schedulers.newThread()).observeOn(Schedulers.trampoline())
     }
 
+    fun sendPush(registrationIds: List<String>) {
+        var formattedRegistrationIds = registrationIds.toString()
+                .replace(",", "")
+        formattedRegistrationIds = formattedRegistrationIds.subSequence(1, formattedRegistrationIds.length - 1).toString()
+        val command = "sh ${System.getenv("FILMOTECA_PATH")}/send-push.sh $formattedRegistrationIds"
+        val res = Runtime.getRuntime().exec(command)
+
+        println(res.errorStream.bufferedReader().readText())
+        println(res.inputStream.bufferedReader().readText())
+    }
+
     fun setUpdateStatus(status: Int) {
         preferences.putInt(UpdateStatus.PREFERENCE_UPDATE_STATUS, status)
         try {
