@@ -1,7 +1,6 @@
 package com.avs.filmoteca
 
 import com.avs.filmoteca.data.domain.UpdateStatus
-import com.avs.filmoteca.data.domain.push.PushMessage
 import com.avs.filmoteca.data.repository.DataRepository
 import rx.Observable
 import rx.Observer
@@ -31,14 +30,15 @@ class App : Observer<List<String>> {
                     currentMovies = newMovies
                     substractNewMovies(oldMovies, newMovies)
                 }
-                .toBlocking().subscribe(this)
+                .toBlocking()
+                .subscribe(this)
     }
 
-    fun substractNewMovies(oldMovies: List<String>?, newMovies: List<String>?): List<String> {
-        return if (oldMovies != null && newMovies != null) {
-            newMovies.filter { !oldMovies.contains(it) }
-        } else ArrayList()
-    }
+    private fun substractNewMovies(oldMovies: List<String>?, newMovies: List<String>?): List<String> =
+            if (oldMovies != null && newMovies != null)
+                newMovies.filter { !oldMovies.contains(it) }
+            else
+                ArrayList()
 
     override fun onCompleted() {
         println("Completed")
@@ -60,15 +60,16 @@ class App : Observer<List<String>> {
     private fun sendPushNotification() {
         repository.getRegistrationIdsObservable()
                 .flatMap { registrationIds ->
-                    repository.getPushDeliveryObservable(PushMessage.Builder()
-                            .setRegistrationIds(registrationIds).setTitleResId("notification_title_normal")
-                            .setMessageResId("notification_message_new_movies").setIconResId("ic_notification").build())
+                    repository.getPushDeliveryObservable(registrationIds)
                 }
-                .toBlocking().subscribe()
+                .toBlocking()
+                .subscribe()
     }
 
     private fun updateMovies(movies: List<String>) {
-        repository.getUpdateMoviesObservable(movies).toBlocking().subscribe()
+        repository.getUpdateMoviesObservable(movies)
+                .toBlocking()
+                .subscribe()
     }
 
     private fun needToSendPush(isUpdating: Boolean): Boolean {
