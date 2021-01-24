@@ -1,5 +1,7 @@
 package com.avs.filmoteca.data.ws
 
+import com.avs.filmoteca.data.ws.security.BasicAuthCredentials
+import com.avs.filmoteca.data.ws.security.BasicAuthInterceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
@@ -22,7 +24,7 @@ object ApiClient {
 
     private val basicAuthHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .addInterceptor(BasicAuthInterceptor())
+            .addInterceptor(BasicAuthInterceptor(BasicAuthCredentials.USER, BasicAuthCredentials.PASSWORD))
             .build()
     }
 
