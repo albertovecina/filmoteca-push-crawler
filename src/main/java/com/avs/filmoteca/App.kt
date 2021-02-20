@@ -5,7 +5,7 @@ import com.avs.filmoteca.data.repository.DataRepository
 import rx.Observable
 import rx.Observer
 
-class App : Observer<List<String>> {
+class App(private val region: String = "ab") : Observer<List<String>> {
 
     private val repository = DataRepository.instance
     private var currentMovies: List<String> = ArrayList()
@@ -14,7 +14,10 @@ class App : Observer<List<String>> {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val app = App()
+            val app = if (args.isNotEmpty())
+                App(args[0])
+            else
+                App()
             app.init()
         }
 
@@ -22,23 +25,24 @@ class App : Observer<List<String>> {
 
     fun init() {
         println("Init")
+        println("Region: $region")
         Observable
-                .zip<List<String>, List<String>, List<String>>(
-                        repository.getStoredMoviesObservable(),
-                        repository.getPublishedMoviesObservable().map { it.map { movie -> movie.title } }
-                ) { oldMovies, newMovies ->
-                    currentMovies = newMovies
-                    substractNewMovies(oldMovies, newMovies)
-                }
-                .toBlocking()
-                .subscribe(this)
+            .zip<List<String>, List<String>, List<String>>(
+                repository.getStoredMoviesObservable(region),
+                repository.getPublishedMoviesObservable().map { it.map { movie -> movie.title } }
+            ) { oldMovies, newMovies ->
+                currentMovies = newMovies
+                substractNewMovies(oldMovies, newMovies)
+            }
+            .toBlocking()
+            .subscribe(this)
     }
 
     private fun substractNewMovies(oldMovies: List<String>?, newMovies: List<String>?): List<String> =
-            if (oldMovies != null && newMovies != null)
-                newMovies.filter { !oldMovies.contains(it) }
-            else
-                ArrayList()
+        if (oldMovies != null && newMovies != null)
+            newMovies.filter { !oldMovies.contains(it) }
+        else
+            ArrayList()
 
     override fun onCompleted() {
         println("Completed")
@@ -58,18 +62,18 @@ class App : Observer<List<String>> {
     }
 
     private fun sendPushNotification() {
-        repository.getRegistrationIdsObservable()
-                .flatMap { registrationIds ->
-                    repository.getPushDeliveryObservable(registrationIds)
-                }
-                .toBlocking()
-                .subscribe()
+        repository.getRegistrationIdsObservable(region)
+            .flatMap { registrationIds ->
+                repository.getPushDeliveryObservable(registrationIds)
+            }
+            .toBlocking()
+            .subscribe()
     }
 
     private fun updateMovies(movies: List<String>) {
-        repository.getUpdateMoviesObservable(movies)
-                .toBlocking()
-                .subscribe()
+        repository.getUpdateMoviesObservable(movies, region)
+            .toBlocking()
+            .subscribe()
     }
 
     private fun needToSendPush(isUpdating: Boolean): Boolean {
