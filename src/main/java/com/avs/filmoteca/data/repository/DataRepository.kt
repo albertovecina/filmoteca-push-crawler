@@ -1,6 +1,7 @@
 package com.avs.filmoteca.data.repository
 
 import com.avs.filmoteca.data.domain.Movie
+import com.avs.filmoteca.data.domain.Region
 import com.avs.filmoteca.data.domain.UpdateStatus
 import com.avs.filmoteca.data.domain.mapper.MoviesDataMapper
 import com.avs.filmoteca.data.domain.push.PushMessage
@@ -22,33 +23,33 @@ class DataRepository private constructor() {
 
     }
 
-    fun getPublishedMoviesObservable(): Observable<List<Movie>> =
-        ApiClient.filmotecaInterface.getMoviesListHtmlObservable()
-            .map { MoviesDataMapper.transformMovie(it) }
+    fun getPublishedMoviesObservable(region: Region): Observable<List<Movie>> =
+        ApiClient.filmotecaInterface.getMoviesListHtmlObservable(region.endpoint)
+            .map { MoviesDataMapper.newInstance(region).transformMovie(it) }
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
 
-    fun getPublishedMoviesObservableMock(withMovies: Boolean): Observable<List<Movie>> =
+    fun getPublishedMoviesObservableMock(region: Region, withMovies: Boolean): Observable<List<Movie>> =
         Observable.create { onSubscribe ->
             if (withMovies)
-                onSubscribe?.onNext(MoviesDataMapper.transformMovie(MockData.MOVIE_LIST))
+                onSubscribe?.onNext(MoviesDataMapper.newInstance(region).transformMovie(MockData.MOVIE_LIST))
             else
                 onSubscribe?.onNext(ArrayList())
             onSubscribe?.onCompleted()
         }
 
-    fun getStoredMoviesObservable(region: String): Observable<List<String>> =
-        ApiClient.backendInterface.getStoredMoviesObservable(region)
+    fun getStoredMoviesObservable(region: Region): Observable<List<String>> =
+        ApiClient.backendInterface.getStoredMoviesObservable(region.code)
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
 
-    fun getRegistrationIdsObservable(region: String): Observable<List<String>> =
-        ApiClient.backendInterface.getRegistrationIdsObservable(region)
+    fun getRegistrationIdsObservable(region: Region): Observable<List<String>> =
+        ApiClient.backendInterface.getRegistrationIdsObservable(region.code)
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
 
-    fun getUpdateMoviesObservable(movieTitles: List<String>, region: String): Observable<Void> {
-        return ApiClient.backendInterface.getUpdateMoviesObservable(movieTitles, region)
+    fun getUpdateMoviesObservable(region: Region, movieTitles: List<String>): Observable<Void> {
+        return ApiClient.backendInterface.getUpdateMoviesObservable(movieTitles, region.code)
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
     }
@@ -74,11 +75,11 @@ class DataRepository private constructor() {
         ApiClient.fcmInterface
             .getPushDeliveryObservable("key=" + System.getenv("FIREBASE_API_KEY"), message)
 
-    fun getLastUpdateStatus(region: String): Int =
-        preferences.getInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_$region", UpdateStatus.NOT_UPDATING)
+    fun getLastUpdateStatus(region: Region): Int =
+        preferences.getInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_${region.code}", UpdateStatus.NOT_UPDATING)
 
-    fun setUpdateStatus(region: String, status: Int) {
-        preferences.putInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_$region", status)
+    fun setUpdateStatus(region: Region, status: Int) {
+        preferences.putInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_${region.code}", status)
         try {
             preferences.sync()
         } catch (e: BackingStoreException) {

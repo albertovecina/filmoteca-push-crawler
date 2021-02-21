@@ -30,7 +30,9 @@ object ApiClient {
 
     private fun getRetrofit(environment: Environment): Retrofit =
         Retrofit.Builder().apply {
-            baseUrl(environment.endpoint)
+
+            if (environment.endpoint.isNotEmpty())
+                baseUrl(environment.endpoint)
 
             if (environment == Environment.BACKEND)
                 client(basicAuthHttpClient)
