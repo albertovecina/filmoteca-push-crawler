@@ -12,7 +12,7 @@ import rx.Observable
 interface FCMInterface {
     
     @Headers("Content-Type:application/json")
-    @POST("/fcm/send")
+    @POST("fcm/send")
     fun getPushDeliveryObservable(@Header("Authorization") firebaseAuthorization: String, @Body message: PushMessage): Observable<ResponseBody>
 
 }
