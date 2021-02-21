@@ -1,11 +1,12 @@
 package com.avs.filmoteca
 
+import com.avs.filmoteca.data.domain.Region
 import com.avs.filmoteca.data.domain.UpdateStatus
 import com.avs.filmoteca.data.repository.DataRepository
 import rx.Observable
 import rx.Observer
 
-class App(private val region: String = "ab") : Observer<List<String>> {
+class App(private val region: Region = Region.Albacete) : Observer<List<String>> {
 
     private val repository = DataRepository.instance
     private var currentMovies: List<String> = ArrayList()
@@ -15,7 +16,7 @@ class App(private val region: String = "ab") : Observer<List<String>> {
         @JvmStatic
         fun main(args: Array<String>) {
             val app = if (args.isNotEmpty())
-                App(args[0])
+                App(Region.fromCode(args[0]))
             else
                 App()
             app.init()
@@ -29,7 +30,7 @@ class App(private val region: String = "ab") : Observer<List<String>> {
         Observable
             .zip<List<String>, List<String>, List<String>>(
                 repository.getStoredMoviesObservable(region),
-                repository.getPublishedMoviesObservable().map { it.map { movie -> movie.title } }
+                repository.getPublishedMoviesObservable(region).map { it.map { movie -> movie.title } }
             ) { oldMovies, newMovies ->
                 currentMovies = newMovies
                 substractNewMovies(oldMovies, newMovies)
@@ -71,12 +72,12 @@ class App(private val region: String = "ab") : Observer<List<String>> {
     }
 
     private fun updateMovies(movies: List<String>) {
-        repository.getUpdateMoviesObservable(movies, region)
+        repository.getUpdateMoviesObservable(region, movies)
             .toBlocking()
             .subscribe()
     }
 
-    private fun needToSendPush(isUpdating: Boolean, region: String): Boolean {
+    private fun needToSendPush(isUpdating: Boolean, region: Region): Boolean {
         var needToSendPush = false
         if (isUpdating) {
             repository.setUpdateStatus(region, UpdateStatus.UPDATING)
