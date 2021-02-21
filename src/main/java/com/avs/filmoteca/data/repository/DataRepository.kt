@@ -47,10 +47,6 @@ class DataRepository private constructor() {
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
 
-    fun getLastUpdateStatus(): Int =
-        preferences.getInt(UpdateStatus.PREFERENCE_UPDATE_STATUS, UpdateStatus.NOT_UPDATING)
-
-
     fun getUpdateMoviesObservable(movieTitles: List<String>, region: String): Observable<Void> {
         return ApiClient.backendInterface.getUpdateMoviesObservable(movieTitles, region)
             .subscribeOn(Schedulers.newThread())
@@ -78,14 +74,16 @@ class DataRepository private constructor() {
         ApiClient.fcmInterface
             .getPushDeliveryObservable("key=" + System.getenv("FIREBASE_API_KEY"), message)
 
-    fun setUpdateStatus(status: Int) {
-        preferences.putInt(UpdateStatus.PREFERENCE_UPDATE_STATUS, status)
+    fun getLastUpdateStatus(region: String): Int =
+        preferences.getInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_$region", UpdateStatus.NOT_UPDATING)
+
+    fun setUpdateStatus(region: String, status: Int) {
+        preferences.putInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_$region", status)
         try {
             preferences.sync()
         } catch (e: BackingStoreException) {
             e.printStackTrace()
         }
-
     }
 
 }
