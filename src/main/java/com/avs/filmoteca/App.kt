@@ -58,7 +58,7 @@ class App(private val region: Region = Region.Albacete) : Observer<List<String>>
         val isUpdating = addedMovies.isNotEmpty()
         if (isUpdating)
             updateMovies(currentMovies)
-        if (needToSendPush(isUpdating, region))
+        if (needToSendPush(isUpdating))
             sendPushNotification()
     }
 
@@ -77,7 +77,7 @@ class App(private val region: Region = Region.Albacete) : Observer<List<String>>
             .subscribe()
     }
 
-    private fun needToSendPush(isUpdating: Boolean, region: Region): Boolean {
+    private fun needToSendPush(isUpdating: Boolean): Boolean {
         var needToSendPush = false
         if (isUpdating) {
             repository.setUpdateStatus(region, UpdateStatus.UPDATING)
