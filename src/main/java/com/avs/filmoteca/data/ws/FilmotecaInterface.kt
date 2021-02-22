@@ -7,6 +7,6 @@ import rx.Observable
 interface FilmotecaInterface {
 
     @GET
-    fun getMoviesListHtmlObservable(@Url url: String): Observable<String>
+    fun getMoviesListHtmlObservable(@Url url: String): Observable<String?>
 
 }

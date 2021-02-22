@@ -16,7 +16,6 @@ class DataRepository private constructor() {
 
     companion object {
 
-
         private var preferences: Preferences = Preferences.userNodeForPackage(DataRepository::class.java)
 
         val instance: DataRepository by lazy { DataRepository() }
@@ -25,7 +24,12 @@ class DataRepository private constructor() {
 
     fun getPublishedMoviesObservable(region: Region): Observable<List<Movie>> =
         ApiClient.filmotecaInterface.getMoviesListHtmlObservable(region.endpoint)
-            .map { MoviesDataMapper.newInstance(region).transformMovie(it) }
+            .flatMap {
+                if (it.isNullOrEmpty())
+                    Observable.error(Exception("Empty html"))
+                else
+                    Observable.just(MoviesDataMapper.newInstance(region).transformMovie(it))
+            }
             .subscribeOn(Schedulers.newThread())
             .observeOn(Schedulers.trampoline())
 
