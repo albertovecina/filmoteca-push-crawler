@@ -2,7 +2,6 @@ package com.avs.filmoteca.data.domain.mapper
 
 import com.avs.filmoteca.data.domain.Movie
 import org.jsoup.Jsoup
-import java.util.*
 
 class MoviesDataMapperAb : MoviesDataMapper {
 
@@ -27,7 +26,7 @@ class MoviesDataMapperAb : MoviesDataMapper {
             val event = events[x]
             movie = Movie()
             val link = event.getElementsByClass("url").first()
-            val title = link.text()
+            val title = link?.text() ?: ""
             if (title.indexOf("(") > 0) {
                 movie.title = title.substring(0, title.indexOf("(")).trim { it <= ' ' }
                 movie.subtitle = title.substring(title.indexOf("("))
@@ -36,7 +35,7 @@ class MoviesDataMapperAb : MoviesDataMapper {
                 movie.subtitle = ""
             }
 
-            movie.url = link.attr("href")
+            movie.url = link?.attr("href") ?: ""
             val date = "- " + dates[x].text()
             movie.date = date
 

@@ -1,6 +1,8 @@
 package com.avs.filmoteca.data.ws.security
 
+import com.avs.filmoteca.data.domain.Environment
+
 object BasicAuthCredentials {
-    val USER: String = System.getenv("BASIC_AUTH_USER")
-    val PASSWORD: String = System.getenv("BASIC_AUTH_PASSWORD")
+    val user: String = Environment.BasicAuthUser.value
+    val password: String = Environment.BasicAuthPassword.value
 }

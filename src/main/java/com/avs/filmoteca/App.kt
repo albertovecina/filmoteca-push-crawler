@@ -3,13 +3,10 @@ package com.avs.filmoteca
 import com.avs.filmoteca.data.domain.Region
 import com.avs.filmoteca.data.domain.UpdateStatus
 import com.avs.filmoteca.data.repository.DataRepository
-import rx.Observable
-import rx.Observer
 
-class App(private val region: Region = Region.Albacete) : Observer<List<String>> {
+class App(private val region: Region = Region.Albacete) {
 
     private val repository = DataRepository.instance
-    private var currentMovies: List<String> = ArrayList()
 
     companion object {
 
@@ -25,61 +22,37 @@ class App(private val region: Region = Region.Albacete) : Observer<List<String>>
     }
 
     fun init() {
-        println("Init")
+        println("INIT")
         println("Region: $region")
-        Observable
-            .zip<List<String>, List<String>, List<String>>(
-                repository.getStoredMoviesObservable(region),
-                repository.getPublishedMoviesObservable(region).map { it.map { movie -> movie.title } }
-            ) { oldMovies, newMovies ->
-                currentMovies = newMovies
-                substractNewMovies(oldMovies, newMovies)
-            }
-            .toBlocking()
-            .subscribe(this)
+        substractNewMovies(repository.getStoredMovies(region), repository.getPublishedMovies(region)).let { newMovies ->
+            newMovies.forEach { println(it) }
+            val isUpdating = newMovies.isNotEmpty()
+            if (isUpdating)
+                updateMovies(newMovies)
+            if (needToSendPush(isUpdating))
+                sendPushNotification()
+        }
+        println("END")
     }
 
     private fun substractNewMovies(oldMovies: List<String>?, newMovies: List<String>?): List<String> =
-        if (oldMovies != null && newMovies != null)
-            newMovies.filter { !oldMovies.contains(it) }
-        else
-            ArrayList()
-
-    override fun onCompleted() {
-        println("Completed")
-    }
-
-    override fun onError(e: Throwable) {
-        e.printStackTrace()
-    }
-
-    override fun onNext(addedMovies: List<String>) {
-        addedMovies.forEach { println(it) }
-        val isUpdating = addedMovies.isNotEmpty()
-        if (isUpdating)
-            updateMovies(currentMovies)
-        if (needToSendPush(isUpdating))
-            sendPushNotification()
-    }
+            if (oldMovies != null && newMovies != null)
+                newMovies.filter { !oldMovies.contains(it) }
+            else
+                ArrayList()
 
     private fun sendPushNotification() {
-        repository.getRegistrationIdsObservable(region)
-            .flatMap { registrationIds ->
-                repository.getPushDeliveryObservable(registrationIds)
-            }
-            .toBlocking()
-            .subscribe()
+        repository.sendPush(repository.getRegistrationIds(region))
+        println("PUSH SEND")
     }
 
     private fun updateMovies(movies: List<String>) {
-        repository.getUpdateMoviesObservable(region, movies)
-            .toBlocking()
-            .subscribe()
+        repository.updateMovies(region, movies)
     }
 
-    private fun needToSendPush(isUpdating: Boolean): Boolean {
+    private fun needToSendPush(newMoviesAvailable: Boolean): Boolean {
         var needToSendPush = false
-        if (isUpdating) {
+        if (newMoviesAvailable) {
             repository.setUpdateStatus(region, UpdateStatus.UPDATING)
         } else {
             when (repository.getLastUpdateStatus(region)) {
@@ -91,6 +64,7 @@ class App(private val region: Region = Region.Albacete) : Observer<List<String>>
                 }
             }
         }
+        println("UPDATE STATUS: ${repository.getLastUpdateStatus(region)} NEED PUSH: $needToSendPush")
         return needToSendPush
     }
 
