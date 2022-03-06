@@ -11,28 +11,28 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 object ApiClient {
 
     val filmotecaInterface: FilmotecaInterface by lazy {
-        getRetrofit(Environment.WEB).create(FilmotecaInterface::class.java)
+        getRetrofit(Endpoint.Web).create(FilmotecaInterface::class.java)
     }
 
     val backendInterface: BackendInterface by lazy {
-        getRetrofit(Environment.BACKEND).create(BackendInterface::class.java)
+        getRetrofit(Endpoint.Service).create(BackendInterface::class.java)
     }
 
     val fcmInterface: FCMInterface by lazy {
-        getRetrofit(Environment.FIREBASE).create(FCMInterface::class.java)
+        getRetrofit(Endpoint.Firebase).create(FCMInterface::class.java)
     }
 
     private val basicAuthHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .addInterceptor(BasicAuthInterceptor(BasicAuthCredentials.USER, BasicAuthCredentials.PASSWORD))
+            .addInterceptor(BasicAuthInterceptor(BasicAuthCredentials.user, BasicAuthCredentials.password))
             .build()
     }
 
-    private fun getRetrofit(environment: Environment): Retrofit =
+    private fun getRetrofit(endpoint: Endpoint): Retrofit =
         Retrofit.Builder().apply {
-            baseUrl(environment.endpoint)
+            baseUrl(endpoint.endpoint)
 
-            if (environment == Environment.BACKEND)
+            if (endpoint == Endpoint.Service)
                 client(basicAuthHttpClient)
 
             addCallAdapterFactory(RxJavaCallAdapterFactory.create())
