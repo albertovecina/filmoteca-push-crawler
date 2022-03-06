@@ -1,5 +1,6 @@
 package com.avs.filmoteca.data.repository
 
+import com.avs.filmoteca.data.domain.Environment
 import com.avs.filmoteca.data.domain.Movie
 import com.avs.filmoteca.data.domain.Region
 import com.avs.filmoteca.data.domain.UpdateStatus
@@ -23,64 +24,64 @@ class DataRepository private constructor() {
     }
 
     fun getPublishedMoviesObservable(region: Region): Observable<List<Movie>> =
-        ApiClient.filmotecaInterface.getMoviesListHtmlObservable(region.endpoint)
-            .flatMap {
-                if (it.isNullOrEmpty())
-                    Observable.error(Exception("Empty html"))
-                else
-                    Observable.just(MoviesDataMapper.newInstance(region).transformMovie(it))
-            }
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(Schedulers.trampoline())
+            ApiClient.filmotecaInterface.getMoviesListHtmlObservable(region.endpoint)
+                    .flatMap {
+                        if (it.isNullOrEmpty())
+                            Observable.error(Exception("Empty html"))
+                        else
+                            Observable.just(MoviesDataMapper.newInstance(region).transformMovie(it))
+                    }
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(Schedulers.trampoline())
 
     fun getPublishedMoviesObservableMock(region: Region, withMovies: Boolean): Observable<List<Movie>> =
-        Observable.create { onSubscribe ->
-            if (withMovies)
-                onSubscribe?.onNext(MoviesDataMapper.newInstance(region).transformMovie(MockData.MOVIE_LIST))
-            else
-                onSubscribe?.onNext(ArrayList())
-            onSubscribe?.onCompleted()
-        }
+            Observable.create { onSubscribe ->
+                if (withMovies)
+                    onSubscribe?.onNext(MoviesDataMapper.newInstance(region).transformMovie(MockData.MOVIE_LIST))
+                else
+                    onSubscribe?.onNext(ArrayList())
+                onSubscribe?.onCompleted()
+            }
 
     fun getStoredMoviesObservable(region: Region): Observable<List<String>> =
-        ApiClient.backendInterface.getStoredMoviesObservable(region.code)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(Schedulers.trampoline())
+            ApiClient.backendInterface.getStoredMoviesObservable(region.code)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(Schedulers.trampoline())
 
     fun getRegistrationIdsObservable(region: Region): Observable<List<String>> =
-        ApiClient.backendInterface.getRegistrationIdsObservable(region.code)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(Schedulers.trampoline())
+            ApiClient.backendInterface.getRegistrationIdsObservable(region.code)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(Schedulers.trampoline())
 
     fun getUpdateMoviesObservable(region: Region, movieTitles: List<String>): Observable<Void> {
         return ApiClient.backendInterface.getUpdateMoviesObservable(movieTitles, region.code)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(Schedulers.trampoline())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.trampoline())
     }
 
     fun getPushDeliveryObservable(registrationIds: List<String>): Observable<Unit> {
         val groupedRegistrationIds: List<List<String>> =
-            registrationIds.groupBy { registrationIds.indexOf(it) / 1000 }.values.toList()
+                registrationIds.groupBy { registrationIds.indexOf(it) / 1000 }.values.toList()
         val observableBatch: List<Observable<ResponseBody>> = groupedRegistrationIds.map {
             createPushObservable(
-                PushMessage.Builder()
-                    .setRegistrationIds(it)
-                    .setTitleResId("notification_title_normal")
-                    .setMessageResId("notification_message_new_movies")
-                    .setIconResId("ic_notification").build()
+                    PushMessage.Builder()
+                            .setRegistrationIds(it)
+                            .setTitleResId("notification_title_normal")
+                            .setMessageResId("notification_message_new_movies")
+                            .setIconResId("ic_notification").build()
             )
         }
         return Observable.zip(observableBatch) {}
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(Schedulers.trampoline())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.trampoline())
     }
 
     private fun createPushObservable(message: PushMessage): Observable<ResponseBody> =
-        ApiClient.fcmInterface
-            .getPushDeliveryObservable("key=" + System.getenv("FIREBASE_API_KEY"), message)
+            ApiClient.fcmInterface
+                    .getPushDeliveryObservable("key=" + Environment.FirebaseApiKey.value, message)
 
     fun getLastUpdateStatus(region: Region): Int =
-        preferences.getInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_${region.code}", UpdateStatus.NOT_UPDATING)
+            preferences.getInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_${region.code}", UpdateStatus.NOT_UPDATING)
 
     fun setUpdateStatus(region: Region, status: Int) {
         preferences.putInt("${UpdateStatus.PREFERENCE_UPDATE_STATUS}_${region.code}", status)
