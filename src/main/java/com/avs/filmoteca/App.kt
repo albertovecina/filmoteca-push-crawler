@@ -24,13 +24,15 @@ class App(private val region: Region = Region.Albacete) {
     fun init() {
         println("INIT")
         println("Region: $region")
-        substractNewMovies(repository.getStoredMovies(region), repository.getPublishedMovies(region)).let { newMovies ->
-            newMovies.forEach { println(it) }
-            val isUpdating = newMovies.isNotEmpty()
-            if (isUpdating)
-                updateMovies(newMovies)
-            if (needToSendPush(isUpdating))
-                sendPushNotification()
+        repository.getPublishedMovies(region).let { publishedMovies ->
+            substractNewMovies(repository.getStoredMovies(region), publishedMovies).let { newMovies ->
+                newMovies.forEach { println(it) }
+                val isUpdating = newMovies.isNotEmpty()
+                if (isUpdating)
+                    repository.updateMovies(region, publishedMovies)
+                if (needToSendPush(isUpdating))
+                    sendPushNotification()
+            }
         }
         println("END")
     }
@@ -44,10 +46,6 @@ class App(private val region: Region = Region.Albacete) {
     private fun sendPushNotification() {
         repository.sendPush(repository.getRegistrationIds(region))
         println("PUSH SEND")
-    }
-
-    private fun updateMovies(movies: List<String>) {
-        repository.updateMovies(region, movies)
     }
 
     private fun needToSendPush(newMoviesAvailable: Boolean): Boolean {
