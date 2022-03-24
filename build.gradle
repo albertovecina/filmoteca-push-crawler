@@ -14,7 +14,7 @@ jar {
 }
 
 group = 'com.avs'
-version = '1.1'
+version = '1.1.1'
 description = 'filmoteca-push-crawler'
 sourceCompatibility = '1.8'
 
