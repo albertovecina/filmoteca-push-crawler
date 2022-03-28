@@ -1,4 +1,4 @@
-package com.avs.filmoteca.data.domain.push
+package com.avs.filmoteca.domain.model.push
 
 import com.google.gson.annotations.SerializedName
 

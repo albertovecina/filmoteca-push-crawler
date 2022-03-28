@@ -13,8 +13,8 @@ object ApiClient {
         getRetrofit(Endpoint.Web).create(FilmotecaInterface::class.java)
     }
 
-    val backendInterface: BackendInterface by lazy {
-        getRetrofit(Endpoint.Service).create(BackendInterface::class.java)
+    val apiInterface: ApiInterface by lazy {
+        getRetrofit(Endpoint.Service).create(ApiInterface::class.java)
     }
 
     val fcmInterface: FCMInterface by lazy {

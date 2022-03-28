@@ -1,6 +1,6 @@
 package com.avs.filmoteca.data.ws
 
-import com.avs.filmoteca.data.domain.push.PushMessage
+import com.avs.filmoteca.domain.model.push.PushMessage
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body

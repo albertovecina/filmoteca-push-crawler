@@ -1,6 +1,6 @@
 package com.avs.filmoteca.data.ws
 
-import com.avs.filmoteca.data.domain.Environment
+import com.avs.filmoteca.data.Environment
 
 sealed class Endpoint(val endpoint: String) {
     object Web : Endpoint("http://localhost/")

@@ -1,6 +1,6 @@
-package com.avs.filmoteca.data.domain.mapper
+package com.avs.filmoteca.domain.mapper
 
-import com.avs.filmoteca.data.domain.Movie
+import com.avs.filmoteca.domain.model.Movie
 import org.jsoup.Jsoup
 
 class MoviesDataMapperAb : MoviesDataMapper {
@@ -10,7 +10,7 @@ class MoviesDataMapperAb : MoviesDataMapper {
         private const val CLASS_DATE = "description"
     }
 
-    override fun transformMovie(html: String?): List<Movie> {
+    override fun map(html: String?): List<Movie> {
         val moviesList = ArrayList<Movie>()
 
         if (html == null || html.isEmpty())
