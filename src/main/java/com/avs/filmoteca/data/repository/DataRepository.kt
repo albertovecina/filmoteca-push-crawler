@@ -1,10 +1,10 @@
 package com.avs.filmoteca.data.repository
 
-import com.avs.filmoteca.data.domain.Environment
-import com.avs.filmoteca.data.domain.Region
-import com.avs.filmoteca.data.domain.UpdateStatus
-import com.avs.filmoteca.data.domain.mapper.MoviesDataMapper
-import com.avs.filmoteca.data.domain.push.PushMessage
+import com.avs.filmoteca.data.Environment
+import com.avs.filmoteca.domain.model.Region
+import com.avs.filmoteca.domain.model.UpdateStatus
+import com.avs.filmoteca.domain.mapper.MoviesDataMapper
+import com.avs.filmoteca.domain.model.push.PushMessage
 import com.avs.filmoteca.data.ws.ApiClient
 import java.util.prefs.BackingStoreException
 import java.util.prefs.Preferences
@@ -20,18 +20,18 @@ class DataRepository private constructor() {
     }
 
     fun getPublishedMovies(region: Region): List<String> =
-            ApiClient.filmotecaInterface.getMoviesListHtml(region.endpoint).execute().body()?.let {
-                MoviesDataMapper.newInstance(region).transformMovie(it).map { it.title }
+            ApiClient.filmotecaInterface.getMoviesListHtml(region.endpoint).execute().body()?.let { html ->
+                MoviesDataMapper.newInstance(region).map(html).map { it.title }
             } ?: emptyList()
 
     fun getStoredMovies(region: Region): List<String> =
-            ApiClient.backendInterface.getStoredMovies(region.code).execute().body() ?: emptyList()
+            ApiClient.apiInterface.getStoredMovies(region.code).execute().body() ?: emptyList()
 
     fun getRegistrationIds(region: Region): List<String> =
-            ApiClient.backendInterface.getRegistrationIds(region.code).execute().body() ?: emptyList()
+            ApiClient.apiInterface.getRegistrationIds(region.code).execute().body() ?: emptyList()
 
     fun updateMovies(region: Region, movieTitles: List<String>) {
-        ApiClient.backendInterface.updateMovies(movieTitles, region.code).execute()
+        ApiClient.apiInterface.updateMovies(movieTitles, region.code).execute()
     }
 
     fun sendPush(registrationIds: List<String>) {

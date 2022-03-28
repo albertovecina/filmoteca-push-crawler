@@ -1,7 +1,7 @@
-package com.avs.filmoteca.data.domain.mapper
+package com.avs.filmoteca.domain.mapper
 
-import com.avs.filmoteca.data.domain.Movie
-import com.avs.filmoteca.data.domain.Region
+import com.avs.filmoteca.domain.model.Movie
+import com.avs.filmoteca.domain.model.Region
 
 interface MoviesDataMapper {
 
@@ -12,6 +12,6 @@ interface MoviesDataMapper {
         }
     }
 
-    fun transformMovie(html: String?): List<Movie>
+    fun map(html: String?): List<Movie>
 
 }

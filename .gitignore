@@ -13,3 +13,6 @@ build/
 
 #JAR MANIFEST
 META-INF/
+
+#Log
+filmoteca.log

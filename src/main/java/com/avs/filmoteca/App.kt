@@ -1,8 +1,10 @@
 package com.avs.filmoteca
 
-import com.avs.filmoteca.data.domain.Region
-import com.avs.filmoteca.data.domain.UpdateStatus
+import com.avs.filmoteca.core.extensions.toJson
+import com.avs.filmoteca.core.util.Logger
 import com.avs.filmoteca.data.repository.DataRepository
+import com.avs.filmoteca.domain.model.Region
+import com.avs.filmoteca.domain.model.UpdateStatus
 
 class App(private val region: Region = Region.Albacete) {
 
@@ -22,30 +24,25 @@ class App(private val region: Region = Region.Albacete) {
     }
 
     fun init() {
-        println("INIT")
-        println("Region: $region")
+        Logger.logger.info("INIT - REGION: $region")
         repository.getPublishedMovies(region).let { publishedMovies ->
-            substractNewMovies(repository.getStoredMovies(region), publishedMovies).let { newMovies ->
-                newMovies.forEach { println(it) }
-                val isUpdating = newMovies.isNotEmpty()
-                if (isUpdating)
-                    repository.updateMovies(region, publishedMovies)
-                if (needToSendPush(isUpdating))
-                    sendPushNotification()
+            repository.getStoredMovies(region).let { storedMovies ->
+                publishedMovies.filter { !storedMovies.contains(it) }.let { newMovies ->
+                    Logger.logger.info("PUBLISHED MOVIES:\n${publishedMovies.toJson()}\nSTORED MOVIES:\n${storedMovies.toJson()}\nNEW MOVIES:\n${newMovies.toJson()} \n REGION: $region")
+                    val isUpdating = newMovies.isNotEmpty()
+                    if (isUpdating)
+                        repository.updateMovies(region, publishedMovies)
+                    if (needToSendPush(isUpdating))
+                        sendPushNotification()
+                }
             }
         }
-        println("END")
+        Logger.logger.info("END - REGION: $region")
     }
-
-    private fun substractNewMovies(oldMovies: List<String>?, newMovies: List<String>?): List<String> =
-            if (oldMovies != null && newMovies != null)
-                newMovies.filter { !oldMovies.contains(it) }
-            else
-                ArrayList()
 
     private fun sendPushNotification() {
         repository.sendPush(repository.getRegistrationIds(region))
-        println("PUSH SEND")
+        Logger.logger.info("PUSH SENT - REGION: $region")
     }
 
     private fun needToSendPush(newMoviesAvailable: Boolean): Boolean {
@@ -62,7 +59,7 @@ class App(private val region: Region = Region.Albacete) {
                 }
             }
         }
-        println("UPDATE STATUS: ${repository.getLastUpdateStatus(region)} NEED PUSH: $needToSendPush")
+        Logger.logger.info("UPDATE STATUS: ${repository.getLastUpdateStatus(region)} NEED PUSH: $needToSendPush - REGION $region")
         return needToSendPush
     }
 

@@ -1,4 +1,4 @@
-package com.avs.filmoteca.data.domain
+package com.avs.filmoteca.domain.model
 
 object UpdateStatus {
 
