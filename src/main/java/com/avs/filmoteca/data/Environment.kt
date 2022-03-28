@@ -1,4 +1,4 @@
-package com.avs.filmoteca.data.domain
+package com.avs.filmoteca.data
 
 sealed class Environment(val name: String, val value: String = System.getenv(name)) {
 

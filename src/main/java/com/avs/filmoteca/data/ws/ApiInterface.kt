@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-interface BackendInterface {
+interface ApiInterface {
 
     @GET("movies")
     fun getStoredMovies(@Query("region") region: String): Call<List<String>>
